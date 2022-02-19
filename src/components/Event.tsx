@@ -1,12 +1,14 @@
 import { EventType } from '../views/Timeline';
+import { TimelineWrapper } from './TimelineWrapper';
 
 interface EventProps {
     event: EventType;
+    showConnector: boolean;
 }
-export function Event({ event }: EventProps) {
+export function Event({ event, showConnector }: EventProps) {
     return (
-        <div>
+        <TimelineWrapper onClick={() => {}} showConnector={showConnector}>
             <p>{event.description}</p>
-        </div>
+        </TimelineWrapper>
     );
 }

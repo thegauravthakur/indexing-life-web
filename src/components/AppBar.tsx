@@ -9,14 +9,19 @@ import { auth } from '../firebase';
 
 export const NavigationBar = () => {
     return (
-        <AppBar position='static'>
+        <AppBar position='static' sx={{ bgcolor: '#f8fafc', color: '#334155' }}>
             <Container maxWidth='xl'>
                 <Toolbar disableGutters>
                     <Typography
-                        variant='h6'
+                        variant='h5'
                         noWrap
                         component='div'
-                        sx={{ mr: 2, display: 'flex', flex: 1 }}
+                        sx={{
+                            mr: 2,
+                            display: 'flex',
+                            flex: 1,
+                            fontWeight: 'bold',
+                        }}
                     >
                         Indexing Life
                     </Typography>

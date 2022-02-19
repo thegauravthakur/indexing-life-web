@@ -1,9 +1,8 @@
 import { NavigationBar } from '../components/AppBar';
-import { useQuery } from 'react-query';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, firestore } from '../firebase';
 import { Events } from '../components/Events';
-
+import { Container, Typography } from '@mui/material';
+import { format } from 'date-fns';
+import { CustomCalendar } from '../components/CustomCalendar';
 export interface EventType {
     createdAt: number;
     description: string;
@@ -14,20 +13,32 @@ export interface EventType {
 export type EventsType = Record<string, EventType>;
 
 export function Timeline() {
-    const { data } = useQuery('fetchEvents', async () => {
-        const { uid } = auth.currentUser!;
-        const ref = doc(firestore, uid, '2022-02-19');
-        const snapshot = await getDoc(ref);
-        if (snapshot.exists()) {
-            return snapshot.data();
-        }
-        return {};
-    });
-
     return (
         <div>
             <NavigationBar />
-            <Events />
+            <Container
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'space-around',
+                }}
+            >
+                <div>
+                    <Typography
+                        variant={'h4'}
+                        sx={{
+                            fontWeight: 'bold',
+                            color: '#334155',
+                            marginY: 3,
+                        }}
+                    >
+                        {format(new Date(new Date()), 'EEEE do, yyyy')}
+                    </Typography>
+                    <Events />
+                </div>
+                <div style={{ paddingTop: 40 }}>
+                    <CustomCalendar />
+                </div>
+            </Container>
         </div>
     );
 }
