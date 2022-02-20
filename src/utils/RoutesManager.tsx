@@ -4,6 +4,7 @@ import Auth from 'firebase/auth';
 import { auth } from '../firebase';
 import { LoginView } from '../views/LoginView';
 import { Timeline } from '../views/Timeline';
+import { LinearProgress } from '@mui/material';
 
 export function RoutesManager() {
     const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +18,7 @@ export function RoutesManager() {
     }, []);
 
     if (isLoading) {
-        return <p>loading...</p>;
+        return <LinearProgress />;
     }
 
     return (

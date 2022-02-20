@@ -1,17 +1,26 @@
 import styled from '@emotion/styled';
-import { TextareaAutosize } from '@mui/material';
+import { ClickAwayListener, TextareaAutosize } from '@mui/material';
 import { TimelineWrapper } from './TimelineWrapper';
 import { auth, firestore } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
+import { queryClient } from '../index';
+import { EventsType } from '../views/Timeline';
 
-const Container = styled.div`
+interface ContainerProps {
+    isFocused: boolean;
+}
+
+const Container = styled.div<ContainerProps>`
     display: flex;
     flex-direction: column;
-    box-shadow: 6px 13px 24px -8px rgba(0, 0, 0, 0.79);
-    -webkit-box-shadow: 6px 13px 24px -8px rgba(0, 0, 0, 0.79);
-    -moz-box-shadow: 6px 13px 24px -8px rgba(0, 0, 0, 0.79);
+    box-shadow: ${(props) =>
+        props.isFocused
+            ? `3px 10px 24px -8px rgba(0, 0, 0, 0.79)`
+            : `3px 5px 10px -8px rgba(0, 0, 0, 0.79)`};
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease-in-out;
     border-radius: 10px;
 `;
 
@@ -24,11 +33,12 @@ const Title = styled(TextareaAutosize)`
         outline: none;
     }
     resize: none;
+    font-family: Inter sans-serif;
 `;
 
 const Description = styled(TextareaAutosize)`
     border: 0;
-    font-size: 15px;
+    font-size: 16px;
     padding: 10px;
     border-collapse: separate;
     border-radius: 10px;
@@ -37,41 +47,62 @@ const Description = styled(TextareaAutosize)`
         outline: none;
     }
     resize: none;
+    font-family: Inter sans-serif;
 `;
 
 export function TextInput() {
-    const title = useRef<HTMLTextAreaElement>(null);
-    const description = useRef<HTMLTextAreaElement>(null);
-    const id = uuid();
+    const titleRef = useRef<HTMLTextAreaElement>(null);
+    const descriptionRef = useRef<HTMLTextAreaElement>(null);
+    const [isDescriptionFocused, setDescriptionFocus] = useState(false);
+
+    const onEventSubmit = async () => {
+        const title = titleRef.current?.value ?? '';
+        const description = descriptionRef.current?.value ?? '';
+        const id = uuid();
+        if (title || description) {
+            const { uid } = auth.currentUser!;
+            const value = {
+                image: null,
+                title,
+                description,
+                createdAt: Date.now(),
+                isLoved: false,
+            };
+            titleRef.current!.value = '';
+            descriptionRef.current!.value = '';
+            queryClient.setQueryData('fetchEvents', (_events) => {
+                const copy = { ...(_events as EventsType) };
+                copy[id] = value;
+                return copy;
+            });
+            const ref = doc(firestore, uid, '2022-02-19');
+            await setDoc(ref, { [id]: value }, { merge: true });
+        }
+    };
     return (
-        <TimelineWrapper
-            onClick={async () => {
-                if (title.current && description.current) {
-                    const { uid } = auth.currentUser!;
-                    const ref = doc(firestore, uid, '2022-02-19');
-                    await setDoc(
-                        ref,
-                        {
-                            [id]: {
-                                image: null,
-                                title: title.current.value,
-                                description: description.current.value,
-                                createdAt: Date.now(),
-                            },
-                        },
-                        { merge: true }
-                    );
-                }
-            }}
-        >
-            <Container>
-                <Title ref={title} maxRows={4} placeholder='Enter title...' />
-                <Description
-                    ref={description}
-                    maxRows={8}
-                    placeholder='What just happened?'
-                />
-            </Container>
+        <TimelineWrapper onClick={onEventSubmit}>
+            <ClickAwayListener
+                onClickAway={() => {
+                    setDescriptionFocus(false);
+                    console.log('outisde');
+                }}
+            >
+                <Container isFocused={isDescriptionFocused} style={{}}>
+                    {isDescriptionFocused && (
+                        <Title
+                            ref={titleRef}
+                            maxRows={4}
+                            placeholder='Enter title...'
+                        />
+                    )}
+                    <Description
+                        onFocus={() => setDescriptionFocus(true)}
+                        ref={descriptionRef}
+                        maxRows={8}
+                        placeholder='What just happened?'
+                    />
+                </Container>
+            </ClickAwayListener>
         </TimelineWrapper>
     );
 }

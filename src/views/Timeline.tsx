@@ -6,6 +6,7 @@ import { CustomCalendar } from '../components/CustomCalendar';
 export interface EventType {
     createdAt: number;
     description: string;
+    isLoved: boolean;
     image: string | null;
     title: string;
 }
@@ -20,6 +21,7 @@ export function Timeline() {
                 sx={{
                     display: 'flex',
                     justifyContent: 'space-around',
+                    marginTop: 5,
                 }}
             >
                 <div>

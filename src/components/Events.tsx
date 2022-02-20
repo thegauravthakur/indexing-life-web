@@ -1,18 +1,18 @@
 import { Event } from './Event';
 import { Timeline } from '@mui/lab';
-import { Container, Typography } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import { TextInput } from './TextInput';
 import { useQuery } from 'react-query';
 import { auth, firestore } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { format } from 'date-fns';
+import { EventsType } from '../views/Timeline';
 export function Events() {
-    const { data: events } = useQuery('fetchEvents', async () => {
+    const { data: events, isLoading } = useQuery('fetchEvents', async () => {
         const { uid } = auth.currentUser!;
         const ref = doc(firestore, uid, '2022-02-19');
         const snapshot = await getDoc(ref);
         if (snapshot.exists()) {
-            return snapshot.data();
+            return snapshot.data() as EventsType;
         }
         return {};
     });
@@ -25,8 +25,14 @@ export function Events() {
         : [];
 
     return (
-        <Timeline style={{ margin: 0, padding: 0, minWidth: 450 }}>
+        <Timeline style={{ margin: 0, padding: 0, width: 450 }}>
             <TextInput />
+            {isLoading && (
+                <CircularProgress
+                    size={25}
+                    style={{ marginTop: 10, marginLeft: 4 }}
+                />
+            )}
             {sortedKeys.map((key, index) => (
                 <Event
                     key={key}
