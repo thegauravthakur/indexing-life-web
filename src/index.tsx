@@ -5,14 +5,17 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { RoutesManager } from './utils/RoutesManager';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { RecoilRoot } from 'recoil';
 
 export const queryClient = new QueryClient();
 ReactDOM.render(
     <React.StrictMode>
         <QueryClientProvider client={queryClient}>
-            <BrowserRouter>
-                <RoutesManager />
-            </BrowserRouter>
+            <RecoilRoot>
+                <BrowserRouter>
+                    <RoutesManager />
+                </BrowserRouter>
+            </RecoilRoot>
         </QueryClientProvider>
     </React.StrictMode>,
     document.getElementById('root')

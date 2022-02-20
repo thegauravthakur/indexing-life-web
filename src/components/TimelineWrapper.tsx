@@ -8,17 +8,19 @@ import {
 } from '@mui/lab';
 import React from 'react';
 import { IconButton } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Add, CreateOutlined } from '@mui/icons-material';
 
 interface TimelineWrapperProps {
     children: React.ReactNode;
     onClick: () => void;
     showConnector?: boolean;
+    showEditIcon?: boolean;
 }
 export function TimelineWrapper({
     children,
     onClick,
     showConnector = true,
+    showEditIcon = true,
 }: TimelineWrapperProps) {
     return (
         <TimelineItem>
@@ -30,7 +32,11 @@ export function TimelineWrapper({
                         sx={{ margin: 0 }}
                         onClick={onClick}
                     >
-                        <Add fontSize={'small'} />
+                        {!showEditIcon ? (
+                            <Add fontSize={'small'} />
+                        ) : (
+                            <CreateOutlined fontSize='small' />
+                        )}
                     </IconButton>
                 </TimelineDot>
                 {showConnector && <TimelineConnector />}

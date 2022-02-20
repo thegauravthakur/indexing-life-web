@@ -7,6 +7,8 @@ import { useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { queryClient } from '../index';
 import { EventsType } from '../views/Timeline';
+import { useRecoilValue } from 'recoil';
+import { currentDateState } from '../recoil/atom';
 
 interface ContainerProps {
     isFocused: boolean;
@@ -51,6 +53,7 @@ const Description = styled(TextareaAutosize)`
 `;
 
 export function TextInput() {
+    const currentDate = useRecoilValue(currentDateState);
     const titleRef = useRef<HTMLTextAreaElement>(null);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
     const [isDescriptionFocused, setDescriptionFocus] = useState(false);
@@ -70,17 +73,20 @@ export function TextInput() {
             };
             titleRef.current!.value = '';
             descriptionRef.current!.value = '';
-            queryClient.setQueryData('fetchEvents', (_events) => {
-                const copy = { ...(_events as EventsType) };
-                copy[id] = value;
-                return copy;
-            });
-            const ref = doc(firestore, uid, '2022-02-19');
+            queryClient.setQueryData(
+                ['fetchEvents', currentDate],
+                (_events) => {
+                    const copy = { ...(_events as EventsType) };
+                    copy[id] = value;
+                    return copy;
+                }
+            );
+            const ref = doc(firestore, uid, currentDate);
             await setDoc(ref, { [id]: value }, { merge: true });
         }
     };
     return (
-        <TimelineWrapper onClick={onEventSubmit}>
+        <TimelineWrapper showEditIcon={false} onClick={onEventSubmit}>
             <ClickAwayListener
                 onClickAway={() => {
                     setDescriptionFocus(false);

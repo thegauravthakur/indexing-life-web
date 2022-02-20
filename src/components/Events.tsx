@@ -6,16 +6,31 @@ import { useQuery } from 'react-query';
 import { auth, firestore } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { EventsType } from '../views/Timeline';
+import styled from '@emotion/styled';
+import { useRecoilValue } from 'recoil';
+import { currentDateState } from '../recoil/atom';
+const CustomTimeline = styled(Timeline)`
+    padding: 0;
+    margin: 0;
+    width: 450px;
+    @media (max-width: 1000px) {
+        width: 100%;
+    }
+`;
 export function Events() {
-    const { data: events, isLoading } = useQuery('fetchEvents', async () => {
-        const { uid } = auth.currentUser!;
-        const ref = doc(firestore, uid, '2022-02-19');
-        const snapshot = await getDoc(ref);
-        if (snapshot.exists()) {
-            return snapshot.data() as EventsType;
+    const currentDate = useRecoilValue(currentDateState);
+    const { data: events, isLoading } = useQuery(
+        ['fetchEvents', currentDate],
+        async () => {
+            const { uid } = auth.currentUser!;
+            const ref = doc(firestore, uid, currentDate);
+            const snapshot = await getDoc(ref);
+            if (snapshot.exists()) {
+                return snapshot.data() as EventsType;
+            }
+            return {};
         }
-        return {};
-    });
+    );
     const sortedKeys = events
         ? Object.keys(events).sort(
               (key1: string, key2: string) =>
@@ -25,7 +40,7 @@ export function Events() {
         : [];
 
     return (
-        <Timeline style={{ margin: 0, padding: 0, width: 450 }}>
+        <CustomTimeline>
             <TextInput />
             {isLoading && (
                 <CircularProgress
@@ -40,6 +55,6 @@ export function Events() {
                     event={events![key]}
                 />
             ))}
-        </Timeline>
+        </CustomTimeline>
     );
 }
