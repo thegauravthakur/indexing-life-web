@@ -9,6 +9,7 @@ import { queryClient } from '../index';
 import { EventsType } from '../views/Timeline';
 import { useRecoilValue } from 'recoil';
 import { currentDateState } from '../recoil/atom';
+import { TextInputFooter } from './TextInputFooter';
 
 interface ContainerProps {
     isFocused: boolean;
@@ -107,6 +108,7 @@ export function TextInput() {
                         maxRows={8}
                         placeholder='What just happened?'
                     />
+                    {isDescriptionFocused && <TextInputFooter />}
                 </Container>
             </ClickAwayListener>
         </TimelineWrapper>

@@ -1,6 +1,6 @@
 import { Event } from './Event';
 import { Timeline } from '@mui/lab';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Typography } from '@mui/material';
 import { TextInput } from './TextInput';
 import { useQuery } from 'react-query';
 import { auth, firestore } from '../firebase';
@@ -47,6 +47,15 @@ export function Events() {
                     size={25}
                     style={{ marginTop: 10, marginLeft: 4 }}
                 />
+            )}
+            {!isLoading && sortedKeys.length === 0 && (
+                <Typography
+                    color='#64748b'
+                    variant='subtitle2'
+                    style={{ paddingTop: 20 }}
+                >
+                    No Events Found...
+                </Typography>
             )}
             {sortedKeys.map((key, index) => (
                 <Event
