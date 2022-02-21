@@ -3,7 +3,7 @@ import { ClickAwayListener, TextareaAutosize } from '@mui/material';
 import { TimelineWrapper } from './TimelineWrapper';
 import { auth, firestore } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { queryClient } from '../index';
 import { EventsType } from '../views/Timeline';
@@ -55,13 +55,11 @@ const Description = styled(TextareaAutosize)`
 
 export function TextInput() {
     const currentDate = useRecoilValue(currentDateState);
-    const titleRef = useRef<HTMLTextAreaElement>(null);
-    const descriptionRef = useRef<HTMLTextAreaElement>(null);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
     const [isDescriptionFocused, setDescriptionFocus] = useState(false);
 
     const onEventSubmit = async () => {
-        const title = titleRef.current?.value ?? '';
-        const description = descriptionRef.current?.value ?? '';
         const id = uuid();
         if (title || description) {
             const { uid } = auth.currentUser!;
@@ -72,8 +70,6 @@ export function TextInput() {
                 createdAt: Date.now(),
                 isLoved: false,
             };
-            titleRef.current!.value = '';
-            descriptionRef.current!.value = '';
             queryClient.setQueryData(
                 ['fetchEvents', currentDate],
                 (_events) => {
@@ -84,6 +80,8 @@ export function TextInput() {
             );
             const ref = doc(firestore, uid, currentDate);
             await setDoc(ref, { [id]: value }, { merge: true });
+            setTitle('');
+            setDescription('');
         }
     };
     return (
@@ -91,20 +89,21 @@ export function TextInput() {
             <ClickAwayListener
                 onClickAway={() => {
                     setDescriptionFocus(false);
-                    console.log('outisde');
                 }}
             >
                 <Container isFocused={isDescriptionFocused} style={{}}>
                     {isDescriptionFocused && (
                         <Title
-                            ref={titleRef}
+                            value={title}
+                            onChange={(text) => setTitle(text.target.value)}
                             maxRows={4}
                             placeholder='Enter title...'
                         />
                     )}
                     <Description
+                        value={description}
+                        onChange={(text) => setDescription(text.target.value)}
                         onFocus={() => setDescriptionFocus(true)}
-                        ref={descriptionRef}
                         maxRows={8}
                         placeholder='What just happened?'
                     />
