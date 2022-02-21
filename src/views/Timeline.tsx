@@ -34,7 +34,7 @@ export function Timeline() {
                     marginTop: 5,
                 }}
             >
-                <div>
+                <div style={{ width: '100%' }}>
                     <Typography
                         variant={'h4'}
                         sx={{
