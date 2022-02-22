@@ -21,7 +21,6 @@ export function EventItemFooter({ event }: EventItemFooterProps) {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingLeft: 4,
             }}
         >
             <Typography variant={'subtitle2'}>
