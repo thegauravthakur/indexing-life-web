@@ -21,7 +21,6 @@ export const NavigationBar = () => {
     };
     const handleClose = async () => {
         setAnchorEl(null);
-        await auth.signOut();
     };
 
     return (
@@ -62,7 +61,11 @@ export const NavigationBar = () => {
                             'aria-labelledby': 'basic-button',
                         }}
                     >
-                        <MenuItem onClick={handleClose}>
+                        <MenuItem
+                            onClick={async () => {
+                                await auth.signOut();
+                            }}
+                        >
                             <ListItemIcon>
                                 <Logout fontSize='small' />
                             </ListItemIcon>

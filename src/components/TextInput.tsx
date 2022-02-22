@@ -1,8 +1,9 @@
 import styled from '@emotion/styled';
 import { ClickAwayListener, TextareaAutosize } from '@mui/material';
 import { TimelineWrapper } from './TimelineWrapper';
-import { auth, firestore } from '../firebase';
+import { auth, firestore, storage } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
 import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { queryClient } from '../index';
@@ -10,6 +11,7 @@ import { EventsType } from '../views/Timeline';
 import { useRecoilValue } from 'recoil';
 import { currentDateState } from '../recoil/atom';
 import { TextInputFooter } from './TextInputFooter';
+import { useFilePicker } from 'use-file-picker';
 
 interface ContainerProps {
     isFocused: boolean;
@@ -58,13 +60,35 @@ export function TextInput() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [isDescriptionFocused, setDescriptionFocus] = useState(false);
+    const [openFileSelector, { filesContent, plainFiles, clear }] =
+        useFilePicker({
+            readAs: 'DataURL',
+            accept: 'image/*',
+        });
+
+    const uploadImage = async (sRef: any) => {
+        return new Promise<string>((resolve) => {
+            const progress = uploadBytesResumable(sRef, plainFiles[0]);
+            progress.on(
+                'state_changed',
+                () => {},
+                () => {},
+                async () => {
+                    const downloadURL = await getDownloadURL(sRef);
+                    resolve(downloadURL);
+                }
+            );
+        });
+    };
 
     const onEventSubmit = async () => {
         const id = uuid();
+        const { uid } = auth.currentUser!;
+        const sRef = ref(storage, `${uid}/${currentDate}/${id}`);
         if (title || description) {
-            const { uid } = auth.currentUser!;
+            const downloadURL = await uploadImage(sRef);
             const value = {
-                image: null,
+                image: downloadURL,
                 title,
                 description,
                 createdAt: Date.now(),
@@ -107,7 +131,13 @@ export function TextInput() {
                         maxRows={8}
                         placeholder='What just happened?'
                     />
-                    {isDescriptionFocused && <TextInputFooter />}
+                    {isDescriptionFocused && (
+                        <TextInputFooter
+                            content={filesContent[0]?.content}
+                            clear={clear}
+                            openFileSelector={openFileSelector}
+                        />
+                    )}
                 </Container>
             </ClickAwayListener>
         </TimelineWrapper>
