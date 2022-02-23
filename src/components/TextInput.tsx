@@ -4,7 +4,7 @@ import { TimelineWrapper } from './TimelineWrapper';
 import { auth, firestore, storage } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { queryClient } from '../index';
 import { EventsType } from '../views/Timeline';
@@ -12,6 +12,7 @@ import { useRecoilValue } from 'recoil';
 import { currentDateState } from '../recoil/atom';
 import { TextInputFooter } from './TextInputFooter';
 import { useFilePicker } from 'use-file-picker';
+import Resize from 'react-image-file-resizer';
 
 interface ContainerProps {
     isFocused: boolean;
@@ -57,38 +58,70 @@ const Description = styled(TextareaAutosize)`
 
 export function TextInput() {
     const currentDate = useRecoilValue(currentDateState);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imageFileContent, setImageFileContent] = useState<string | null>(
+        null
+    );
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [isDescriptionFocused, setDescriptionFocus] = useState(false);
-    const [openFileSelector, { filesContent, plainFiles, clear }] =
-        useFilePicker({
-            readAs: 'DataURL',
-            accept: 'image/*',
-        });
+    const [openFileSelector, { plainFiles, clear }] = useFilePicker({
+        readAs: 'DataURL',
+        accept: 'image/*',
+        multiple: false,
+    });
 
-    const uploadImage = async (sRef: any) => {
-        return new Promise<string>((resolve) => {
-            const progress = uploadBytesResumable(sRef, plainFiles[0]);
-            progress.on(
-                'state_changed',
-                () => {},
-                () => {},
-                async () => {
-                    const downloadURL = await getDownloadURL(sRef);
-                    resolve(downloadURL);
-                }
+    useEffect(() => {
+        const [file] = plainFiles;
+        setImageFile(file);
+        if (file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (result) => {
+                setImageFileContent(result.target?.result as string);
+            };
+        } else setImageFileContent(null);
+    }, [plainFiles]);
+    const resizeFile = (file: File) =>
+        new Promise((resolve) => {
+            Resize.imageFileResizer(
+                file,
+                900,
+                900,
+                'JPEG',
+                80,
+                0,
+                (uri) => {
+                    resolve(uri);
+                },
+                'file'
             );
         });
+    const uploadImage = async (sRef: any) => {
+        if (imageFile)
+            return new Promise<string>(async (resolve) => {
+                const compressedImage = (await resizeFile(imageFile)) as File;
+                const progress = uploadBytesResumable(sRef, compressedImage);
+                progress.on(
+                    'state_changed',
+                    () => {},
+                    () => {},
+                    async () => {
+                        const downloadURL = await getDownloadURL(sRef);
+                        resolve(downloadURL);
+                    }
+                );
+            });
     };
 
     const onEventSubmit = async () => {
         const id = uuid();
         const { uid } = auth.currentUser!;
         const sRef = ref(storage, `${uid}/${currentDate}/${id}`);
-        if (title || description) {
-            const downloadURL = await uploadImage(sRef);
+        if (title || description || imageFile) {
+            const downloadURL = imageFile ? await uploadImage(sRef) : null;
             const value = {
-                image: downloadURL,
+                image: downloadURL ?? null,
                 title,
                 description,
                 createdAt: Date.now(),
@@ -106,8 +139,10 @@ export function TextInput() {
             await setDoc(ref, { [id]: value }, { merge: true });
             setTitle('');
             setDescription('');
+            clear();
         }
     };
+
     return (
         <TimelineWrapper showEditIcon={false} onClick={onEventSubmit}>
             <ClickAwayListener
@@ -115,7 +150,23 @@ export function TextInput() {
                     setDescriptionFocus(false);
                 }}
             >
-                <Container isFocused={isDescriptionFocused} style={{}}>
+                <Container
+                    onPaste={(e) => {
+                        const file = e.clipboardData.files[0];
+                        if (file && file.type.split('/')[0] === 'image') {
+                            setImageFile(file);
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = (result) => {
+                                setImageFileContent(
+                                    result.target?.result as string
+                                );
+                            };
+                        }
+                    }}
+                    isFocused={isDescriptionFocused}
+                    style={{}}
+                >
                     {isDescriptionFocused && (
                         <Title
                             value={title}
@@ -133,7 +184,7 @@ export function TextInput() {
                     />
                     {isDescriptionFocused && (
                         <TextInputFooter
-                            content={filesContent[0]?.content}
+                            content={imageFileContent}
                             clear={clear}
                             openFileSelector={openFileSelector}
                         />

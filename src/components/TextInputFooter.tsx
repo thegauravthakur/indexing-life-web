@@ -4,7 +4,7 @@ import IconButton from '@mui/material/IconButton';
 interface TextInputFooterProps {
     openFileSelector: () => void;
     clear: () => void;
-    content: string;
+    content: string | null;
 }
 
 export function TextInputFooter({
