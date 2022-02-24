@@ -12,6 +12,7 @@ interface EventProps {
 export function Event({ event, showConnector, id }: EventProps) {
     const [showDialog, setShowDialog] = useState(false);
     const { description, title, image } = event;
+    const paragraphs = description.split(/\r?\n/);
     return (
         <>
             <TimelineWrapper
@@ -21,7 +22,11 @@ export function Event({ event, showConnector, id }: EventProps) {
                 showConnector={showConnector}
             >
                 <h3 style={{ margin: 0, marginBottom: 5 }}>{title}</h3>
-                <p style={{ margin: 0 }}>{description}</p>
+                <div>
+                    {paragraphs.map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                    ))}
+                </div>
                 {image && (
                     <img
                         width='100%'
