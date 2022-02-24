@@ -7,13 +7,12 @@ import DialogTitle from '@mui/material/DialogTitle';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { Dispatch, SetStateAction, useRef } from 'react';
-import { EventsType, EventType } from '../views/Timeline';
+import { EventType } from '../views/Timeline';
 import { Description, Title } from './TextInput';
-import { queryClient } from '../index';
 import { useRecoilValue } from 'recoil';
 import { currentDateState } from '../recoil/atom';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, firestore } from '../firebase';
+import { updateLocalData } from '../utils/queryClientUtils';
+import { updateCloudData } from '../utils/firebase';
 
 interface EditDialogProps {
     showDialog: boolean;
@@ -35,16 +34,11 @@ export function EditDialog({
     const currentDate = useRecoilValue(currentDateState);
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
-    const handleClickOpen = () => {
-        setShowDialog(true);
-    };
-
     const handleClose = () => {
         setShowDialog(false);
     };
 
     const onSaveClick = async () => {
-        const { uid } = auth.currentUser!;
         const newTitle = titleRef.current?.value ?? '';
         const newDescription = descriptionRef.current?.value ?? '';
         const value = {
@@ -52,14 +46,9 @@ export function EditDialog({
             title: newTitle,
             description: newDescription,
         };
-        queryClient.setQueryData(['fetchEvents', currentDate], (_events) => {
-            const copy = { ...(_events as EventsType) };
-            copy[id] = value;
-            return copy;
-        });
+        updateLocalData(value, id, currentDate);
         setShowDialog(false);
-        const ref = doc(firestore, uid, currentDate);
-        await setDoc(ref, { [id]: value }, { merge: true });
+        await updateCloudData(value, id, currentDate);
     };
 
     return (

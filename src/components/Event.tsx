@@ -35,7 +35,7 @@ export function Event({ event, showConnector, id }: EventProps) {
                         alt=''
                     />
                 )}
-                <EventItemFooter event={event} />
+                <EventItemFooter id={id} event={event} />
             </TimelineWrapper>
             <EditDialog
                 event={event}
