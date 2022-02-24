@@ -30,7 +30,7 @@ const Container = styled.div<ContainerProps>`
     border-radius: 10px;
 `;
 
-const Title = styled(TextareaAutosize)`
+export const Title = styled(TextareaAutosize)`
     border: 0;
     font-size: 17px;
     padding: 10px;
@@ -42,7 +42,7 @@ const Title = styled(TextareaAutosize)`
     font-family: Inter sans-serif;
 `;
 
-const Description = styled(TextareaAutosize)`
+export const Description = styled(TextareaAutosize)`
     border: 0;
     font-size: 16px;
     padding: 10px;

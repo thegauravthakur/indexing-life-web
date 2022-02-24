@@ -62,6 +62,7 @@ export function Events() {
                     key={key}
                     showConnector={sortedKeys.length !== index + 1}
                     event={events![key]}
+                    id={key}
                 />
             ))}
         </CustomTimeline>
