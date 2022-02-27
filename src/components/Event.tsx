@@ -42,12 +42,14 @@ export function Event({ event, showConnector, id }: EventProps) {
                 )}
                 <EventItemFooter id={id} event={event} />
             </TimelineWrapper>
-            <EditDialog
-                event={event}
-                id={id}
-                showDialog={showDialog}
-                setShowDialog={setShowDialog}
-            />
+            {showDialog && (
+                <EditDialog
+                    event={event}
+                    id={id}
+                    showDialog={showDialog}
+                    setShowDialog={setShowDialog}
+                />
+            )}
         </>
     );
 }
